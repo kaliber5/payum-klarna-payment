@@ -1,7 +1,6 @@
 <?php
 namespace Payum\Klarna\Payment;
 
-use Http\Client\HttpClient;
 use Http\Message\MessageFactory;
 use Payum\Core\Exception\Http\HttpException;
 use Payum\Core\HttpClientInterface;
