@@ -1,0 +1,41 @@
+{
+    "name": "kaliber5/payum-klarna-payment",
+    "type": "library",
+    "description": "The Payum extension. It provides Klarna Payment Api",
+    "keywords": ["payment", "klarna"],
+    "homepage": "https://payum.forma-pro.com",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andreas Schacht",
+            "email": "schacht@kaliber5.de"
+        }
+    ],
+    "require": {
+        "php": ">=7.1",
+        "payum/core": "^1.5",
+        "klarna/kco_rest": "^3.0",
+        "symfony/var-dumper": "^4.0"
+    },
+    "require-dev": {
+        "payum/core": "^1.5@dev",
+        "php-http/guzzle6-adapter": "^1.0",
+        "phpunit/phpunit": "^7.1",
+        "symfony/phpunit-bridge": "^4.0"
+    },
+    "config": {
+        "bin-dir": "bin",
+        "platform": {
+            "php": "7.2"
+        }
+    },
+    "autoload": {
+        "psr-0": { "Payum\\Klarna\\Payment": "" }
+    },
+    "target-dir": "Payum/Klarna/Payment",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.5-dev"
+        }
+    }
+}
