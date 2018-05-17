@@ -9,5 +9,4 @@ use Payum\Core\Request\Generic;
  */
 class CreateSession extends Generic
 {
-
 }

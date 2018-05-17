@@ -37,7 +37,7 @@ class ApiTest extends TestCase
             ]
         ];
 
-        $response = $api->createSession($fields);
+        $response = json_decode($api->createSession($fields), true);
 
         $this->assertArrayHasKey('session_id', $response);
     }

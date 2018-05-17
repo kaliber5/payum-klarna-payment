@@ -27,6 +27,8 @@ class Api
 
     const URL_PAYMENTS_SESSIONS = 'payments/v1/sessions';
 
+    const URL_PAYMENTS_AUTHORIZATIONS = 'payments/v1/authorizations';
+
     /**
      * @param array               $options
      * @param HttpClientInterface $client
@@ -42,25 +44,62 @@ class Api
     }
 
     /**
+     * Creates a Customer Token
+     *
+     * @param array $fields
+     *
+     * @return string json the body of the response
+     */
+    public function createCustomerToken($authorizationToken, array $fields): string
+    {
+        $response = $this->doRequest(self::URL_PAYMENTS_AUTHORIZATIONS.'/'.$authorizationToken.'/customer-token', 'POST', $fields);
+        $this->assertResponseStatus($response, 200);
+
+        return $response->getBody()->getContents();
+    }
+
+
+    /**
+     * Creates a Session
+     *
      * @param array $fields
      *
      * @return string json the body of the response
      */
     public function createSession(array $fields): string
     {
-        if ($this->options['debug']) {
-            VarDumper::dump($fields);
-        }
-
         $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS, 'POST', $fields);
-        if ($response->getStatusCode() !== 200)
-        {
-            throw new \RuntimeException('Wrong StatusCode: '.$response->getStatusCode());
-        }
+        $this->assertResponseStatus($response, 200);
 
-        if ($this->options['debug']) {
-            VarDumper::dump(json_decode($response->getBody(), true));
-        }
+        return $response->getBody()->getContents();
+    }
+
+    /**
+     * Creates a Session
+     *
+     * @param array $fields
+     *
+     * @return string json the body of the response
+     */
+    public function updateSession(string $session_id, array $fields): string
+    {
+        $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS.'/'.$session_id, 'POST', $fields);
+        $this->assertResponseStatus($response, 204);
+
+        return $response->getBody();
+    }
+
+    /**
+     * Retrieve a Session
+     *
+     * @param string the session id
+     *
+     * @return string json the body of the response
+     */
+    public function getSession(string $session_id): string
+    {
+        $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS.'/'.$session_id, 'POST', $fields);
+        $this->assertResponseStatus($response, 200);
 
         return $response->getBody();
     }
@@ -92,6 +131,18 @@ class Api
         }
 
         return $response;
+    }
+
+    protected function assertResponseStatus(ResponseInterface $response, $statusCodes)
+    {
+        if (!is_array($statusCodes)) {
+            $statusCodes = [$statusCodes];
+        }
+
+        if (!in_array($response->getStatusCode(), $statusCodes))
+        {
+            throw new \RuntimeException('Wrong StatusCode: '.$response->getStatusCode());
+        }
     }
 
     /**
