@@ -43,7 +43,7 @@ class CreateSessionAction extends BaseApiAwareAction
             );
         }
 
-        $response = $this->getApi()->createSession($model);
+        $response = $this->getApi()->createSession((array) $model);
 
         $model->replace(json_decode($response, true));
     }

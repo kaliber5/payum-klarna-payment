@@ -28,6 +28,10 @@ class Api
 
     const URL_PAYMENTS_AUTHORIZATIONS = 'payments/v1/authorizations';
 
+    const URL_ORDERMANAGEMENT_ORDERS = 'ordermanagement/v1/orders';
+
+    const URL_CUSTOMERTOKEN_TOKENS = 'customer-token/v1/tokens';
+
     /**
      * @param array               $options
      * @param HttpClientInterface $client
@@ -45,13 +49,54 @@ class Api
     /**
      * Creates a Customer Token
      *
-     * @param array $fields
+     * @param string $authorizationToken
+     * @param array  $fields
      *
      * @return string json the body of the response
      */
-    public function createCustomerToken($authorizationToken, array $fields): string
+    public function createCustomerToken(string $authorizationToken, array $fields): string
     {
         $response = $this->doRequest(self::URL_PAYMENTS_AUTHORIZATIONS.'/'.$authorizationToken.'/customer-token', 'POST', $fields);
+        $this->assertResponseStatus($response, 200);
+
+        return $response->getBody()->getContents();
+    }
+
+    /**
+     * Creates an Order by customer token
+     *
+     * @param string $customerToken
+     * @param array  $fields
+     *
+     * @return string json the body of the response
+     */
+    public function createOrderByCustomerToken(string $customerToken, array $fields): string
+    {
+        $response = $this->doRequest(
+            self::URL_CUSTOMERTOKEN_TOKENS.'/'.$customerToken.'/order',
+            'POST',
+            $fields
+        );
+        $this->assertResponseStatus($response, 200);
+
+        return $response->getBody()->getContents();
+    }
+
+    /**
+     * Creates an Order by auth token
+     *
+     * @param string $authorizationToken
+     * @param array  $fields
+     *
+     * @return string json the body of the response
+     */
+    public function createOrderByAuthToken(string $authorizationToken, array $fields): string
+    {
+        $response = $this->doRequest(
+            self::URL_PAYMENTS_AUTHORIZATIONS.'/'.$authorizationToken.'/order',
+            'POST',
+            $fields
+        );
         $this->assertResponseStatus($response, 200);
 
         return $response->getBody()->getContents();
@@ -76,13 +121,14 @@ class Api
     /**
      * Creates a Session
      *
-     * @param array $fields
+     * @param string $sessionId
+     * @param array  $fields
      *
      * @return string json the body of the response
      */
-    public function updateSession(string $session_id, array $fields): string
+    public function updateSession(string $sessionId, array $fields): string
     {
-        $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS.'/'.$session_id, 'POST', $fields);
+        $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS.'/'.$sessionId, 'POST', $fields);
         $this->assertResponseStatus($response, 204);
 
         return $response->getBody();
@@ -91,16 +137,45 @@ class Api
     /**
      * Retrieve a Session
      *
-     * @param string the session id
+     * @param string $sessionId the session id
      *
      * @return string json the body of the response
      */
-    public function getSession(string $session_id): string
+    public function getSession(string $sessionId): string
     {
-        $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS.'/'.$session_id, 'POST', $fields);
+        $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS.'/'.$sessionId, 'GET');
         $this->assertResponseStatus($response, 200);
 
         return $response->getBody();
+    }
+
+    /**
+     * Retrieve an Order
+     *
+     * @param string $orderId the order id
+     *
+     * @return string json the body of the response
+     */
+    public function getOrder(string $orderId): string
+    {
+        $response = $this->doRequest(self::URL_ORDERMANAGEMENT_ORDERS.'/'.$orderId, 'GET');
+        $this->assertResponseStatus($response, 200);
+
+        return $response->getBody();
+    }
+
+    /**
+     * @param string $orderId
+     * @param array  $fields
+     *
+     * @return string
+     */
+    public function captureOrder(string $orderId, array $fields): string
+    {
+        $response = $this->doRequest(self::URL_ORDERMANAGEMENT_ORDERS.'/'.$orderId.'/captures', 'POST', $fields);
+        $this->assertResponseStatus($response, 201);
+
+        return $response->getBody().'';
     }
 
     /**
@@ -108,13 +183,13 @@ class Api
      *
      * @return ResponseInterface
      */
-    protected function doRequest($url, $method, array $fields): ResponseInterface
+    protected function doRequest($url, $method, array $fields = null): ResponseInterface
     {
         $headers = [];
         $headers['Authorization'] = 'Basic '.base64_encode($this->options['merchant_id'].':'.$this->options['secret']);
         $headers['Content-Type'] = 'application/json';
 
-        $request = $this->messageFactory->createRequest($method, $this->getApiEndpoint().$url, $headers, json_encode($fields));
+        $request = $this->messageFactory->createRequest($method, $this->getApiEndpoint().$url, $headers, @json_encode($fields));
 
         if ($this->options['debug']) {
             VarDumper::dump($request);

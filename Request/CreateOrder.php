@@ -5,10 +5,11 @@ namespace Payum\Klarna\Payment\Request;
 use Payum\Core\Request\Generic;
 
 /**
- * Class CreateCustomerToken
+ * Class CreateOrder
+ *
  * @package Payum\Klarna\Payment\Request
  */
-class CreateCustomerToken extends Generic
+class CreateOrder extends Generic
 {
 
 }

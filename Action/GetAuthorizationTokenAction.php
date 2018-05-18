@@ -3,15 +3,14 @@ namespace Payum\Klarna\Payment\Action;
 
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\Bridge\Spl\ArrayObject;
-use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
+use Payum\Core\Reply\HttpRedirect;
 use Payum\Core\Request\Authorize;
 use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Core\Request\GetHttpRequest;
-use Payum\Klarna\Payment\Request\CreateSession;
 use Payum\Klarna\Payment\Request\GetAuthorizationToken;
 
-class GetAuthorizationTokenAction implements ActionInterface, GatewayAwareInterface
+class GetAuthorizationTokenAction implements ActionInterface
 {
     use GatewayAwareTrait;
 
@@ -31,7 +30,7 @@ class GetAuthorizationTokenAction implements ActionInterface, GatewayAwareInterf
         }
         $model = ArrayObject::ensureArrayObject($request->getModel());
         $model->replace(['authorization_token' => $getHttpRequest->request['authorization_token']]);
-        $model->validateNotEmpty('authorization_token');
+        $model->validateNotEmpty(['authorization_token']);
     }
 
     /**

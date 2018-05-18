@@ -6,6 +6,9 @@ use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\Capture;
 use Payum\Core\Exception\RequestNotSupportedException;
+use Payum\Core\Request\GetHumanStatus;
+use Payum\Core\Request\Sync;
+use Payum\Klarna\Payment\Request\CreateOrder;
 
 class CaptureAction implements ActionInterface
 {
@@ -22,7 +25,27 @@ class CaptureAction implements ActionInterface
 
         $model = ArrayObject::ensureArrayObject($request->getModel());
 
-        throw new \LogicException('Not implemented');
+        $this->gateway->execute($status = new GetHumanStatus($model));
+        if (!$status->isAuthorized()) {
+            throw new \LogicException('Status is not authorized');
+        }
+
+        if ($model->validateNotEmpty(['order_id'], false) === false) {
+            // create an order if we have no order id
+            if ($model->validateNotEmpty(['customer_token'], false) || $model->validateNotEmpty(['authorization_token'],false)) {
+                $this->gateway->execute(new CreateOrder($model));
+                $this->gateway->execute(new Sync($model));
+                $this->gateway->execute($status = new GetHumanStatus($model));
+            } else {
+                throw new \LogicException('Cannot create order without token');
+            }
+        }
+        // if autocapture was set, the order state should be captured now
+        if ($status->isAuthorized()) {
+            // Capture order otherwise
+            $this->gateway->execute(new Capture($model));
+            $this->gateway->execute(new Sync($model));
+        }
     }
 
     /**

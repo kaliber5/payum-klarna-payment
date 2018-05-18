@@ -40,11 +40,10 @@ class AuthorizeAction implements ActionInterface, GatewayAwareInterface
 
             $local = ArrayObject::ensureArrayObject($model->get('local'));
             if ($local->offsetExists('recurring') && $local->get('recurring') === true) {
-                $model->replace(['intended_use' => 'SUBSCRIPTION'])
+                $model->replace(['intended_use' => 'SUBSCRIPTION']);
                 $this->gateway->execute(new CreateCustomerToken($model));
             }
         }
-
     }
 
     /**

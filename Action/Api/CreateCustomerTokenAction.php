@@ -1,20 +1,20 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: schacht
- * Date: 17.05.18
- * Time: 18:33
- */
 
 namespace Payum\Klarna\Payment\Action\Api;
 
-
+use Payum\Core\Bridge\Spl\ArrayObject;
+use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Klarna\Payment\Request\CreateCustomerToken;
 
+/**
+ * Class CreateCustomerTokenAction
+ *
+ * @package Payum\Klarna\Payment\Action\Api
+ */
 class CreateCustomerTokenAction extends BaseApiAwareAction
 {
     /**
-     * @param CreateSession $request
+     * @param CreateCustomerToken $request
      */
     public function execute($request)
     {
@@ -23,6 +23,7 @@ class CreateCustomerTokenAction extends BaseApiAwareAction
         $model = ArrayObject::ensureArrayObject($request->getModel());
         $model->validateNotEmpty(
             [
+                'authorization_token',
                 'purchase_country',
                 'purchase_currency',
                 'locale',
@@ -31,7 +32,7 @@ class CreateCustomerTokenAction extends BaseApiAwareAction
             ]
         );
 
-        $response = $this->getApi()->createSession($model);
+        $response = $this->getApi()->createCustomerToken($model->get('authorization_token'), (array) $model);
 
         $model->replace(json_decode($response, true));
     }

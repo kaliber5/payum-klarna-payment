@@ -18,8 +18,78 @@ class StatusAction implements ActionInterface
         RequestNotSupportedException::assertSupports($this, $request);
 
         $model = ArrayObject::ensureArrayObject($request->getModel());
+        $local = ArrayObject::ensureArrayObject($model->get('local'));
+        $recurring = $local->offsetExists('recurring') && $local->get('recurring') === true;
 
-        throw new \LogicException('Not implemented');
+        if ($model->offsetExists('status')) {
+            switch ($model->get('status')) {
+                case 'AUTHORIZED':
+                    $request->markAuthorized();
+                    break;
+                case 'CAPTURED':
+                case 'PART_CAPTURED':
+                    $request->markCaptured();
+                    break;
+                case 'CANCELLED':
+                    $request->markCanceled();
+                    break;
+                case 'EXPIRED':
+                    $request->markExpired();
+                    break;
+                case 'CLOSED': // @TODO what means 'CLOSED'???
+                default:
+                    $request->markUnknown();
+            }
+
+            if (!$request->isUnknown()) { // try to find out by other values
+                return;
+            }
+
+        }
+        if ($model->offsetExists('capture_id')) {
+            $request->markCaptured();
+
+            return;
+        }
+        if ($model->offsetExists('order_id')) {
+            if ($model->get('fraud_status') === 'REJECTED') {
+                $request->markFailed();
+
+                return;
+            }
+            if ($model->get('fraud_status') === 'ACCEPTED' && $model->validateNotEmpty(['captures'], false)) {
+                $request->markCaptured();
+
+                return;
+            }
+            $request->markAuthorized();
+
+            return;
+        }
+
+        if (!$model->offsetExists('session_id')) {
+            $request->markNew();
+
+            return;
+        }
+
+        if (!$recurring) {
+            if (!$model->offsetExists('authorization_token')) {
+                $request->markPending();
+            } else {
+                $request->markAuthorized();
+            }
+
+            return;
+        } else {
+            if (!$model->offsetExists('customer_token')) {
+                $request->markPending();
+            } else {
+                $request->markAuthorized();
+            }
+
+            return;
+        }
     }
 
     /**
