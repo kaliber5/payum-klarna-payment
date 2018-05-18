@@ -7,7 +7,9 @@ use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\Authorize;
 use Payum\Core\Exception\RequestNotSupportedException;
+use Payum\Klarna\Payment\Request\CreateCustomerToken;
 use Payum\Klarna\Payment\Request\CreateSession;
+use Payum\Klarna\Payment\Request\GetAuthorizationToken;
 
 class AuthorizeAction implements ActionInterface, GatewayAwareInterface
 {
@@ -23,33 +25,26 @@ class AuthorizeAction implements ActionInterface, GatewayAwareInterface
         RequestNotSupportedException::assertSupports($this, $request);
 
         $model = ArrayObject::ensureArrayObject($request->getModel());
-        $model->validateNotEmpty(
-            [
-                'purchase_country',
-                'purchase_currency',
-                'locale',
-                'order_amount',
-                'order_tax_amount',
-                'order_lines',
-            ]
-        );
-        $orderLines = $model['order_lines'];
-        foreach ($orderLines as $orderLine) {
-            $order = ArrayObject::ensureArrayObject($orderLine);
-            $order->validateNotEmpty(
-                [
-                    'name',
-                    'quantity',
-                    'unit_price',
-                    'total_amount',
-                ]
-            );
+
+        if (!$model->offsetExists('session_id')) {
+            $this->gateway->execute(new CreateSession($model));
+
+            return;
         }
 
-        $this->gateway->execute(new CreateSession($model));
+        if (!$model->offsetExists('authorization_token') && !$model->offsetExists('customer_token')) {
+            $this->gateway->execute(new GetAuthorizationToken($model));
+        }
 
+        if ($model->offsetExists('authorization_token') && !$model->offsetExists('customer_token')) {
 
-        throw new \LogicException('Not implemented');
+            $local = ArrayObject::ensureArrayObject($model->get('local'));
+            if ($local->offsetExists('recurring') && $local->get('recurring') === true) {
+                $model->replace(['intended_use' => 'SUBSCRIPTION'])
+                $this->gateway->execute(new CreateCustomerToken($model));
+            }
+        }
+
     }
 
     /**
