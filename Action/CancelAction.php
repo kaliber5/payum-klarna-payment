@@ -6,6 +6,7 @@ use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\Cancel;
+use Payum\Klarna\Payment\Request\CancelAuthToken;
 
 class CancelAction implements ActionInterface
 {
@@ -21,8 +22,11 @@ class CancelAction implements ActionInterface
         RequestNotSupportedException::assertSupports($this, $request);
 
         $model = ArrayObject::ensureArrayObject($request->getModel());
-
-        throw new \LogicException('Not implemented');
+        if (!$model->offsetExists('order_id') && $model->offsetExists('authorization_token')) {
+            $this->gateway->execute(new CancelAuthToken($model->get('authorization_token')));
+            $model->offsetUnset('authorization_token');
+        }
+        //@TODO implement order cancelation
     }
 
     /**

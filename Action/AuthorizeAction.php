@@ -7,6 +7,7 @@ use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\Authorize;
 use Payum\Core\Exception\RequestNotSupportedException;
+use Payum\Core\Request\Cancel;
 use Payum\Klarna\Payment\Request\CreateCustomerToken;
 use Payum\Klarna\Payment\Request\CreateSession;
 use Payum\Klarna\Payment\Request\GetAuthorizationToken;
@@ -42,6 +43,8 @@ class AuthorizeAction implements ActionInterface, GatewayAwareInterface
             if ($local->offsetExists('recurring') && $local->get('recurring') === true) {
                 $model->replace(['intended_use' => 'SUBSCRIPTION']);
                 $this->gateway->execute(new CreateCustomerToken($model));
+                // deletes auth token, isn't necessary if we have the customer token
+                $this->gateway->execute(new Cancel($model));
             }
         }
     }

@@ -23,9 +23,7 @@ class CaptureAction extends BaseApiAwareAction
 
         $model->validateNotEmpty(['order_id', 'captured_amount']);
 
-        $response = $this->getApi()->captureOrder($model->get('order_id'), (array) $model);
-
-        $model->replace(json_decode($response, true));
+        $this->getApi()->captureOrder($model->get('order_id'), (array) $model);
     }
 
     public function supports($request)

@@ -119,19 +119,27 @@ class Api
     }
 
     /**
-     * Creates a Session
+     * Deletes an authorization token
+     *
+     * @param string $authToken
+     *
+     */
+    public function deleteAuthToken(string $authToken): void
+    {
+        $response = $this->doRequest(self::URL_PAYMENTS_AUTHORIZATIONS.'/'.$authToken, 'DELETE');
+        $this->assertResponseStatus($response, 204);
+    }
+
+    /**
+     * updates a Session
      *
      * @param string $sessionId
      * @param array  $fields
-     *
-     * @return string json the body of the response
      */
-    public function updateSession(string $sessionId, array $fields): string
+    public function updateSession(string $sessionId, array $fields): void
     {
         $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS.'/'.$sessionId, 'POST', $fields);
         $this->assertResponseStatus($response, 204);
-
-        return $response->getBody();
     }
 
     /**
@@ -170,12 +178,10 @@ class Api
      *
      * @return string
      */
-    public function captureOrder(string $orderId, array $fields): string
+    public function captureOrder(string $orderId, array $fields): viod
     {
         $response = $this->doRequest(self::URL_ORDERMANAGEMENT_ORDERS.'/'.$orderId.'/captures', 'POST', $fields);
         $this->assertResponseStatus($response, 201);
-
-        return $response->getBody().'';
     }
 
     /**
