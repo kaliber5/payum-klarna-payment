@@ -18,7 +18,7 @@ class StatusAction implements ActionInterface
         RequestNotSupportedException::assertSupports($this, $request);
 
         $model = ArrayObject::ensureArrayObject($request->getModel());
-        $local = ArrayObject::ensureArrayObject($model->get('local'));
+        $local = ArrayObject::ensureArrayObject($model->get('local', []));
         $recurring = $local->offsetExists('recurring') && $local->get('recurring') === true;
 
         if ($model->offsetExists('status')) {
@@ -82,7 +82,7 @@ class StatusAction implements ActionInterface
 
             return;
         } else {
-            if (!$model->offsetExists('customer_token')) {
+            if (!$model->offsetExists('token_id')) {
                 $request->markPending();
             } else {
                 $request->markAuthorized();

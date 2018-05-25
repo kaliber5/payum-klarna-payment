@@ -4,7 +4,6 @@ namespace Payum\Klarna\Payment\Action\Api;
 
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\Exception\RequestNotSupportedException;
-use Payum\Core\Reply\HttpResponse;
 use Payum\Klarna\Payment\Request\CreateSession;
 
 /**
@@ -26,10 +25,10 @@ class CreateSessionAction extends BaseApiAwareAction
                 'purchase_currency',
                 'locale',
                 'order_amount',
-                'order_tax_amount',
                 'order_lines',
             ]
         );
+        $model->validatedKeysSet(['order_tax_amount']);
         $orderLines = $model['order_lines'];
         foreach ($orderLines as $orderLine) {
             $order = ArrayObject::ensureArrayObject($orderLine);

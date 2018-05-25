@@ -1,10 +1,9 @@
 <?php
 
-namespace Action\Api;
+namespace Payum\Klarna\Payment\Action\Api;
 
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\Exception\RequestNotSupportedException;
-use Payum\Klarna\Payment\Action\Api\BaseApiAwareAction;
 use Payum\Klarna\Payment\Request\CreateOrder;
 
 /**
@@ -45,8 +44,8 @@ class CreateOrderAction extends BaseApiAwareAction
             );
         }
 
-        if ($model->validateNotEmpty(['customer_token'], false)) {
-            $response = $this->getApi()->createOrderByCustomerToken($model->get('customer_token'), (array) $model);
+        if ($model->validateNotEmpty(['token_id'], false)) {
+            $response = $this->getApi()->createOrderByCustomerToken($model->get('token_id'), (array) $model);
         } else {
             $model->validateNotEmpty(['authorization_token']);
             $response = $this->getApi()->createOrderByAuthToken($model->get('authorization_token'), (array) $model);

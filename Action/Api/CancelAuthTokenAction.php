@@ -1,9 +1,8 @@
 <?php
 
-namespace Action\Api;
+namespace Payum\Klarna\Payment\Action\Api;
 
 use Payum\Core\Exception\RequestNotSupportedException;
-use Payum\Klarna\Payment\Action\Api\BaseApiAwareAction;
 use Payum\Klarna\Payment\Request\CancelAuthToken;
 use Webmozart\Assert\Assert;
 

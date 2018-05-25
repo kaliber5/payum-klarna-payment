@@ -4,13 +4,14 @@ namespace Payum\Klarna\Payment\Action;
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\Exception\RequestNotSupportedException;
+use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\Notify;
 use Payum\Core\Request\Sync;
 use Payum\Klarna\Payment\Request\GetOrder;
 use Payum\Klarna\Payment\Request\GetSession;
 
-class SyncAction implements ActionInterface
+class SyncAction implements ActionInterface, GatewayAwareInterface
 {
     use GatewayAwareTrait;
 

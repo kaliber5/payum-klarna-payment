@@ -3,6 +3,7 @@ namespace Payum\Klarna\Payment\Action;
 
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\Bridge\Spl\ArrayObject;
+use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\Capture;
 use Payum\Core\Exception\RequestNotSupportedException;
@@ -10,7 +11,7 @@ use Payum\Core\Request\GetHumanStatus;
 use Payum\Core\Request\Sync;
 use Payum\Klarna\Payment\Request\CreateOrder;
 
-class CaptureAction implements ActionInterface
+class CaptureAction implements ActionInterface, GatewayAwareInterface
 {
     use GatewayAwareTrait;
 
@@ -32,7 +33,7 @@ class CaptureAction implements ActionInterface
 
         if ($model->validateNotEmpty(['order_id'], false) === false) {
             // create an order if we have no order id
-            if ($model->validateNotEmpty(['customer_token'], false) || $model->validateNotEmpty(['authorization_token'],false)) {
+            if ($model->validateNotEmpty(['token_id'], false) || $model->validateNotEmpty(['authorization_token'],false)) {
                 $this->gateway->execute(new CreateOrder($model));
                 $this->gateway->execute(new Sync($model));
                 $this->gateway->execute($status = new GetHumanStatus($model));
