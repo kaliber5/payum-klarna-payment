@@ -5,10 +5,18 @@ use Http\Message\MessageFactory;
 use Payum\Core\Exception\Http\HttpException;
 use Payum\Core\HttpClientInterface;
 use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\VarDumper\VarDumper;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 
-class Api
+/**
+ * Class Api
+ *
+ * @package Payum\Klarna\Payment
+ */
+class Api implements LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     /**
      * @var HttpClientInterface
      */
@@ -56,6 +64,18 @@ class Api
      */
     public function createCustomerToken(string $authorizationToken, array $fields): string
     {
+        $fields = $this->filterFields(
+            $fields,
+            [
+                'purchase_country',
+                'purchase_currency',
+                'locale',
+                'billing_address',
+                'customer',
+                'description',
+                'intended_use',
+            ]
+        );
         $response = $this->doRequest(self::URL_PAYMENTS_AUTHORIZATIONS.'/'.$authorizationToken.'/customer-token', 'POST', $fields);
         $this->assertResponseStatus($response, 200);
 
@@ -72,6 +92,20 @@ class Api
      */
     public function createOrderByCustomerToken(string $customerToken, array $fields): string
     {
+        $fields = $this->filterFields($fields, [
+            'attachment',
+            'auto_capture',
+            'customer_token_order_merchant_urls',
+            'merchant_data',
+            'merchant_reference1',
+            'merchant_reference2',
+            'order_amount',
+            'order_lines',
+            'order_tax_amount',
+            'purchase_currency',
+            'shipping_address'
+        ]);
+
         $response = $this->doRequest(
             self::URL_CUSTOMERTOKEN_TOKENS.'/'.$customerToken.'/order',
             'POST',
@@ -92,6 +126,35 @@ class Api
      */
     public function createOrderByAuthToken(string $authorizationToken, array $fields): string
     {
+        $fields = $this->filterFields(
+            $fields,
+            [
+                'design',
+                'purchase_country',
+                'purchase_currency',
+                'locale',
+                'billing_address',
+                'shipping_address',
+                'order_amount',
+                'order_tax_amount',
+                'order_lines',
+                'customer',
+                'merchant_urls',
+                'merchant_reference1',
+                'merchant_reference2',
+                'merchant_data',
+                'options',
+                'attachment',
+                'custom_payment_method_ids',
+                'status',
+                'client_token',
+                'expires_at',
+                'acquiring_channel',
+                'payment_method_categories',
+                'auto_capture',
+            ]
+        );
+
         $response = $this->doRequest(
             self::URL_PAYMENTS_AUTHORIZATIONS.'/'.$authorizationToken.'/order',
             'POST',
@@ -112,6 +175,33 @@ class Api
      */
     public function createSession(array $fields): string
     {
+        $fields = $this->filterFields(
+            $fields,
+            [
+                'design',
+                'purchase_country',
+                'purchase_currency',
+                'locale',
+                'billing_address',
+                'shipping_address',
+                'order_amount',
+                'order_tax_amount',
+                'order_lines',
+                'customer',
+                'merchant_urls',
+                'merchant_reference1',
+                'merchant_reference2',
+                'merchant_data',
+                'options',
+                'attachment',
+                'custom_payment_method_ids',
+                'status',
+                'client_token',
+                'expires_at',
+                'acquiring_channel',
+                'payment_method_categories',
+            ]
+        );
         $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS, 'POST', $fields);
         $this->assertResponseStatus($response, 200);
 
@@ -138,6 +228,33 @@ class Api
      */
     public function updateSession(string $sessionId, array $fields): void
     {
+        $fields = $this->filterFields(
+            $fields,
+            [
+                'design',
+                'purchase_country',
+                'purchase_currency',
+                'locale',
+                'billing_address',
+                'shipping_address',
+                'order_amount',
+                'order_tax_amount',
+                'order_lines',
+                'customer',
+                'merchant_urls',
+                'merchant_reference1',
+                'merchant_reference2',
+                'merchant_data',
+                'options',
+                'attachment',
+                'custom_payment_method_ids',
+                'status',
+                'client_token',
+                'expires_at',
+                'acquiring_channel',
+                'payment_method_categories',
+            ]
+        );
         $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS.'/'.$sessionId, 'POST', $fields);
         $this->assertResponseStatus($response, 204);
     }
@@ -178,8 +295,19 @@ class Api
      *
      * @return string
      */
-    public function captureOrder(string $orderId, array $fields): viod
+    public function captureOrder(string $orderId, array $fields): void
     {
+        $fields = $this->filterFields(
+            $fields,
+            [
+                'captured_amount',
+                'description',
+                'order_lines',
+                'shipping_info',
+                'shipping_delay',
+            ]
+        );
+
         $response = $this->doRequest(self::URL_ORDERMANAGEMENT_ORDERS.'/'.$orderId.'/captures', 'POST', $fields);
         $this->assertResponseStatus($response, 201);
     }
@@ -195,16 +323,17 @@ class Api
         $headers['Authorization'] = 'Basic '.base64_encode($this->options['merchant_id'].':'.$this->options['secret']);
         $headers['Content-Type'] = 'application/json';
 
+
         $request = $this->messageFactory->createRequest($method, $this->getApiEndpoint().$url, $headers, @json_encode($fields));
 
-        if ($this->options['debug']) {
-            VarDumper::dump($request);
+        if ($this->options['debug'] && $this->logger) {
+            $this->logger->debug(print_r($fields, true));
         }
         $response = $this->client->send($request);
 
         if (false == ($response->getStatusCode() >= 200 && $response->getStatusCode() < 300)) {
-            if ($this->options['debug']) {
-                VarDumper::dump($response);
+            if ($this->options['debug'] && $this->logger) {
+                $this->logger->debug($response->getBody());
             }
 
             throw HttpException::factory($request, $response);
@@ -213,6 +342,10 @@ class Api
         return $response;
     }
 
+    /**
+     * @param ResponseInterface $response
+     * @param int|array|int[]   $statusCodes
+     */
     protected function assertResponseStatus(ResponseInterface $response, $statusCodes)
     {
         if (!is_array($statusCodes)) {
@@ -223,6 +356,21 @@ class Api
         {
             throw new \RuntimeException('Wrong StatusCode: '.$response->getStatusCode());
         }
+    }
+
+    /**
+     * removes not allowed fields from array
+     *
+     * @param array $fields
+     * @param array $allowed
+     *
+     * @return array
+     */
+    protected function filterFields(array $fields, array $allowed): array
+    {
+        return array_filter($fields, function($key) use ($allowed) {
+            return in_array($key, $allowed);
+        }, ARRAY_FILTER_USE_KEY);
     }
 
     /**

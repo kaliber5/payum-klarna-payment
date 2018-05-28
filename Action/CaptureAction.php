@@ -9,6 +9,7 @@ use Payum\Core\Request\Capture;
 use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Core\Request\GetHumanStatus;
 use Payum\Core\Request\Sync;
+use Payum\Klarna\Payment\Request\CaptureOrder;
 use Payum\Klarna\Payment\Request\CreateOrder;
 
 class CaptureAction implements ActionInterface, GatewayAwareInterface
@@ -34,6 +35,9 @@ class CaptureAction implements ActionInterface, GatewayAwareInterface
         if ($model->validateNotEmpty(['order_id'], false) === false) {
             // create an order if we have no order id
             if ($model->validateNotEmpty(['token_id'], false) || $model->validateNotEmpty(['authorization_token'],false)) {
+                if ($model->offsetExists('captured_amount')) {
+                    $capAmount = $model['captured_amount'];
+                }
                 $this->gateway->execute(new CreateOrder($model));
                 $this->gateway->execute(new Sync($model));
                 $this->gateway->execute($status = new GetHumanStatus($model));
@@ -44,7 +48,10 @@ class CaptureAction implements ActionInterface, GatewayAwareInterface
         // if autocapture was set, the order state should be captured now
         if ($status->isAuthorized()) {
             // Capture order otherwise
-            $this->gateway->execute(new Capture($model));
+            if ($capAmount) {
+                $model->replace(['captured_amount' => $capAmount]);
+            }
+            $this->gateway->execute(new CaptureOrder($model));
             $this->gateway->execute(new Sync($model));
         }
     }

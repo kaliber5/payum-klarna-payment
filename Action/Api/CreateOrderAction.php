@@ -26,9 +26,14 @@ class CreateOrderAction extends BaseApiAwareAction
               'purchase_currency',
               'locale',
               'order_amount',
-              'order_tax_amount',
               'order_lines',
           ]
+        );
+
+        $model->validatedKeysSet(
+            [
+                'order_tax_amount',
+            ]
         );
 
         $orderLines = ArrayObject::ensureArrayObject($model->get('order_lines'));

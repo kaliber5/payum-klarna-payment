@@ -4,15 +4,15 @@ namespace Payum\Klarna\Payment\Action\Api;
 
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\Exception\RequestNotSupportedException;
-use Payum\Klarna\Payment\Request\Capture;
+use Payum\Klarna\Payment\Request\CaptureOrder;
 
 /**
  * Class CaptureAction
  */
-class CaptureAction extends BaseApiAwareAction
+class CaptureOrderAction extends BaseApiAwareAction
 {
     /**
-     * @param Capture $request
+     * @param CaptureOrder $request
      */
     public function execute($request)
     {
@@ -27,6 +27,6 @@ class CaptureAction extends BaseApiAwareAction
 
     public function supports($request)
     {
-        return $request instanceof Capture;
+        return $request instanceof CaptureOrder;
     }
 }

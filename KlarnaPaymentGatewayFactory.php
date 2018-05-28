@@ -18,6 +18,7 @@ use Payum\Klarna\Payment\Action\StatusAction;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\GatewayFactory;
 use Payum\Klarna\Payment\Action\SyncAction;
+use Psr\Log\LoggerInterface;
 
 class KlarnaPaymentGatewayFactory extends GatewayFactory
 {
@@ -40,7 +41,7 @@ class KlarnaPaymentGatewayFactory extends GatewayFactory
             'payum.action.convert_payment' => new ConvertPaymentAction(),
 
             'payum.action.api.cancel_auth_token' => new CancelAuthTokenAction(),
-            'payum.action.api.capture' => new \Payum\Klarna\Payment\Action\Api\CaptureAction(),
+            'payum.action.api.capture' => new \Payum\Klarna\Payment\Action\Api\CaptureOrderAction(),
             'payum.action.api.create_customer_token' => new CreateCustomerTokenAction(),
             'payum.action.api.create_order' => new CreateOrderAction(),
             'payum.action.api.create_session' => new CreateSessionAction(),
@@ -65,7 +66,11 @@ class KlarnaPaymentGatewayFactory extends GatewayFactory
             $config['payum.api'] = function (ArrayObject $config) {
                 $config->validateNotEmpty($config['payum.required_options']);
 
-                return new Api((array) $config, $config['payum.http_client'], $config['httplug.message_factory']);
+                $api = new Api((array) $config, $config['payum.http_client'], $config['httplug.message_factory']);
+                if (isset($config['logger']) && $config['logger'] instanceof LoggerInterface) {
+                    $api->setLogger($config['logger']);
+                }
+                return $api;
             };
         }
     }
