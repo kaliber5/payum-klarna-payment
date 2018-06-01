@@ -22,7 +22,6 @@ class CreateOrderAction extends BaseApiAwareAction
 
         $model->validateNotEmpty(
           [
-              'purchase_country',
               'purchase_currency',
               'locale',
               'order_amount',
@@ -52,7 +51,7 @@ class CreateOrderAction extends BaseApiAwareAction
         if ($model->validateNotEmpty(['token_id'], false)) {
             $response = $this->getApi()->createOrderByCustomerToken($model->get('token_id'), (array) $model);
         } else {
-            $model->validateNotEmpty(['authorization_token']);
+            $model->validateNotEmpty(['authorization_token', 'purchase_country']);
             $response = $this->getApi()->createOrderByAuthToken($model->get('authorization_token'), (array) $model);
         }
 
