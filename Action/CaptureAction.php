@@ -48,7 +48,7 @@ class CaptureAction implements ActionInterface, GatewayAwareInterface
         // if autocapture was set, the order state should be captured now
         if ($status->isAuthorized()) {
             // Capture order otherwise
-            if ($capAmount) {
+            if (!empty($capAmount)) {
                 $model->replace(['captured_amount' => $capAmount]);
             }
             $this->gateway->execute(new CaptureOrder($model));
