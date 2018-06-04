@@ -46,8 +46,8 @@ class ApiTest extends TestCase
     {
         return new Api(
                 [
-                    'merchant_id' => 'PK02410_c529686a8f47',
-                    'secret'      => 'lW2jDIOeVbJj3rPd',
+                    'merchant_id' => getenv('MERCHANT_ID'),
+                    'secret'      => getenv('MERCHANT_ID'),
                     'sandbox'     => true,
                     'debug'       => true,
                 ],

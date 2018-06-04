@@ -21,7 +21,7 @@ class StatusAction implements ActionInterface
 
         $errors = $model->getArray('errors');
 
-        if (!empty($errors)) {
+        if (count($errors) > 0) {
             $request->markFailed();
 
             return;
