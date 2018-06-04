@@ -77,7 +77,6 @@ class Api implements LoggerAwareInterface
             ]
         );
         $response = $this->doRequest(self::URL_PAYMENTS_AUTHORIZATIONS.'/'.$authorizationToken.'/customer-token', 'POST', $fields);
-        $this->assertResponseStatus($response, 200);
 
         return $response->getBody()->getContents();
     }
@@ -111,7 +110,6 @@ class Api implements LoggerAwareInterface
             'POST',
             $fields
         );
-        $this->assertResponseStatus($response, 200);
 
         return $response->getBody()->getContents();
     }
@@ -160,7 +158,6 @@ class Api implements LoggerAwareInterface
             'POST',
             $fields
         );
-        $this->assertResponseStatus($response, 200);
 
         return $response->getBody()->getContents();
     }
@@ -203,7 +200,6 @@ class Api implements LoggerAwareInterface
             ]
         );
         $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS, 'POST', $fields);
-        $this->assertResponseStatus($response, 200);
 
         return $response->getBody()->getContents();
     }
@@ -216,8 +212,7 @@ class Api implements LoggerAwareInterface
      */
     public function deleteAuthToken(string $authToken): void
     {
-        $response = $this->doRequest(self::URL_PAYMENTS_AUTHORIZATIONS.'/'.$authToken, 'DELETE');
-        $this->assertResponseStatus($response, 204);
+        $this->doRequest(self::URL_PAYMENTS_AUTHORIZATIONS.'/'.$authToken, 'DELETE');
     }
 
     /**
@@ -255,8 +250,7 @@ class Api implements LoggerAwareInterface
                 'payment_method_categories',
             ]
         );
-        $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS.'/'.$sessionId, 'POST', $fields);
-        $this->assertResponseStatus($response, 204);
+        $this->doRequest(self::URL_PAYMENTS_SESSIONS.'/'.$sessionId, 'POST', $fields);
     }
 
     /**
@@ -269,7 +263,6 @@ class Api implements LoggerAwareInterface
     public function getSession(string $sessionId): string
     {
         $response = $this->doRequest(self::URL_PAYMENTS_SESSIONS.'/'.$sessionId, 'GET');
-        $this->assertResponseStatus($response, 200);
 
         return $response->getBody();
     }
@@ -284,7 +277,6 @@ class Api implements LoggerAwareInterface
     public function getOrder(string $orderId): string
     {
         $response = $this->doRequest(self::URL_ORDERMANAGEMENT_ORDERS.'/'.$orderId, 'GET');
-        $this->assertResponseStatus($response, 200);
 
         return $response->getBody();
     }
@@ -308,8 +300,7 @@ class Api implements LoggerAwareInterface
             ]
         );
 
-        $response = $this->doRequest(self::URL_ORDERMANAGEMENT_ORDERS.'/'.$orderId.'/captures', 'POST', $fields);
-        $this->assertResponseStatus($response, 201);
+        $this->doRequest(self::URL_ORDERMANAGEMENT_ORDERS.'/'.$orderId.'/captures', 'POST', $fields);
     }
 
     /**
@@ -340,22 +331,6 @@ class Api implements LoggerAwareInterface
         }
 
         return $response;
-    }
-
-    /**
-     * @param ResponseInterface $response
-     * @param int|array|int[]   $statusCodes
-     */
-    protected function assertResponseStatus(ResponseInterface $response, $statusCodes)
-    {
-        if (!is_array($statusCodes)) {
-            $statusCodes = [$statusCodes];
-        }
-
-        if (!in_array($response->getStatusCode(), $statusCodes))
-        {
-            throw new \RuntimeException('Wrong StatusCode: '.$response->getStatusCode());
-        }
     }
 
     /**

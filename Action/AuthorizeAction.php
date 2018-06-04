@@ -3,6 +3,7 @@ namespace Payum\Klarna\Payment\Action;
 
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\Bridge\Spl\ArrayObject;
+use Payum\Core\Exception\Http\HttpException;
 use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\Authorize;
@@ -15,6 +16,7 @@ use Payum\Klarna\Payment\Request\GetAuthorizationToken;
 class AuthorizeAction implements ActionInterface, GatewayAwareInterface
 {
     use GatewayAwareTrait;
+    use HttpExceptionTrait;
 
     /**
      * {@inheritDoc}
@@ -28,13 +30,21 @@ class AuthorizeAction implements ActionInterface, GatewayAwareInterface
         $model = ArrayObject::ensureArrayObject($request->getModel());
 
         if (!$model->offsetExists('session_id')) {
-            $this->gateway->execute(new CreateSession($model));
+            try {
+                $this->gateway->execute(new CreateSession($model));
+            } catch (HttpException $e) {
+                $this->handleHttpException($model, $e);
+            }
 
             return;
         }
 
         if (!$model->offsetExists('authorization_token') && !$model->offsetExists('token_id')) {
-            $this->gateway->execute(new GetAuthorizationToken($model));
+            try {
+                $this->gateway->execute(new GetAuthorizationToken($model));
+            } catch (HttpException $e) {
+                $this->handleHttpException($model, $e);
+            }
         }
 
         if ($model->offsetExists('authorization_token') && !$model->offsetExists('token_id')) {

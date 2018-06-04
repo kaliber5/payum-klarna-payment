@@ -3,6 +3,7 @@ namespace Payum\Klarna\Payment\Action;
 
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\Bridge\Spl\ArrayObject;
+use Payum\Core\Exception\Http\HttpException;
 use Payum\Core\GatewayAwareInterface;
 use Payum\Core\GatewayAwareTrait;
 use Payum\Core\Request\Capture;
@@ -15,6 +16,7 @@ use Payum\Klarna\Payment\Request\CreateOrder;
 class CaptureAction implements ActionInterface, GatewayAwareInterface
 {
     use GatewayAwareTrait;
+    use HttpExceptionTrait;
 
     /**
      * {@inheritDoc}
@@ -38,8 +40,12 @@ class CaptureAction implements ActionInterface, GatewayAwareInterface
                 if ($model->offsetExists('captured_amount')) {
                     $capAmount = $model['captured_amount'];
                 }
-                $this->gateway->execute(new CreateOrder($model));
-                $this->gateway->execute(new Sync($model));
+                try {
+                    $this->gateway->execute(new CreateOrder($model));
+                    $this->gateway->execute(new Sync($model));
+                } catch (HttpException $e) {
+                    $this->handleHttpException($model, $e);
+                }
                 $this->gateway->execute($status = new GetHumanStatus($model));
             } else {
                 throw new \LogicException('Cannot create order without token');
@@ -51,8 +57,12 @@ class CaptureAction implements ActionInterface, GatewayAwareInterface
             if (!empty($capAmount)) {
                 $model->replace(['captured_amount' => $capAmount]);
             }
-            $this->gateway->execute(new CaptureOrder($model));
-            $this->gateway->execute(new Sync($model));
+            try {
+                $this->gateway->execute(new CreateOrder($model));
+                $this->gateway->execute(new Sync($model));
+            } catch (HttpException $e) {
+                $this->handleHttpException($model, $e);
+            }
         }
     }
 
