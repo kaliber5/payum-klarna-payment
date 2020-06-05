@@ -49,7 +49,7 @@ class AuthorizeAction implements ActionInterface, GatewayAwareInterface
 
         if ($model->offsetExists('authorization_token') && !$model->offsetExists('token_id')) {
 
-            $local = ArrayObject::ensureArrayObject($model->get('local'), []);
+            $local = ArrayObject::ensureArrayObject($model->get('local', []));
             if ($local->offsetExists('recurring') && $local->get('recurring') === true) {
 
                 try {
