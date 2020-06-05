@@ -58,7 +58,7 @@ class CaptureAction implements ActionInterface, GatewayAwareInterface
                 $model->replace(['captured_amount' => $capAmount]);
             }
             try {
-                $this->gateway->execute(new CreateOrder($model));
+                $this->gateway->execute(new CaptureOrder($model));
                 $this->gateway->execute(new Sync($model));
             } catch (HttpException $e) {
                 $this->handleHttpException($model, $e);
