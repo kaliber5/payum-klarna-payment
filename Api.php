@@ -148,7 +148,6 @@ class Api implements LoggerAwareInterface
                 'client_token',
                 'expires_at',
                 'acquiring_channel',
-                'payment_method_categories',
                 'auto_capture',
             ]
         );
